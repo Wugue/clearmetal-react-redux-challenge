@@ -1,7 +1,10 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import { addNotification } from "../store/actions";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
 
-export default class TextTransformer extends Component {
+class TextTransformer extends Component {
     state = {
         currentValue: ''
     }
@@ -15,7 +18,27 @@ export default class TextTransformer extends Component {
 
     handleChange = e => this.setState({ currentValue: e.target.value })
 
+    componentWillReceiveProps(nextProps) {
+        console.log(nextProps)
+
+        if (nextProps.transformedValue != '') {
+            const { addNotification } = this.props.actions;
+            addNotification({ text: 'loading success' });
+
+        }
+        if (nextProps.transformedValue == '' && nextProps.isLoading == false) {
+            const { addNotification } = this.props.actions;
+            addNotification({ text: 'server error' });
+        }
+        if (nextProps.error != null) {
+            const { addNotification } = this.props.actions;
+            addNotification({ text: nextProps.error });
+        }
+
+    }
+
     handleSubmit = e => {
+        this.props.click()
         const { transformToLowerCase, transformToUpperCase, mode } = this.props
         const { currentValue } = this.state
         const action = mode === 'upper' ? transformToUpperCase : transformToLowerCase
@@ -37,3 +60,9 @@ export default class TextTransformer extends Component {
         )
     }
 }
+
+const mapDispatchToProps = dispatch => ({
+  actions: bindActionCreators({ addNotification }, dispatch)
+});
+
+export default connect(null, mapDispatchToProps)(TextTransformer);
